@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Planet</title>
+    <link rel="stylesheet" href="../static/css/ask.css" />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <img src="../static/images/logo.svg" alt="AI Planet" />
+        <a href="/">Home</a>
+        {% if pdf_uploaded %}
+          <div class="pdf-name">{{ pdf_name }}</div>
+        {% endif %}
+      </nav>
+    </header>
+    <main>
+      <div class="chatbox"></div>
+      <div class="popup">
+        <div class="pop-content">
+          <p class="connection-closing-message"></p>
+        </div>
+      </div>
+      <div class="container-loader">
+        <div class="loader"></div>
+      </div>
+      {% if pdf_uploaded %}
+        <div class="ask-question">
+          <div class="pdf-name" style="display: none;">{{ pdf_name }}</div>
+          <input type="text" name="question" placeholder="Ask a question..." />
+          <button id="messageInput">Ask</button>
+        </div>
+      {% endif %}
+    </main>
+
+    <script>
+      function uploadFile() {
+        const fileInput = document.getElementById('fileInput')
+        const uploadForm = document.getElementById('uploadForm')
+      
+        if (fileInput.files.length > 0) {
+          document.getElementById('uploadButton').disabled = true
+          uploadForm.submit()
+        }
+      }
+      
+      const ws = new WebSocket('ws://127.0.0.1:8000/ask')
+      
+      ws.onopen = () => {
+        console.log('Connected to WebSocket server')
+      }
+      
+      ws.onmessage = (event) => {
+        if (event.data == 'done') {
+          document.querySelector('.loader').style.display = 'none'
+        } else {
+          const chatbox = document.querySelector('.chatbox')
+          const question = document.querySelector('input[name="question"]').value
+      
+          const questionDiv = document.createElement('div')
+          questionDiv.classList.add('question')
+      
+          const qnaDivQuestion = document.createElement('div')
+          qnaDivQuestion.classList.add('qna')
+          const imgQuestion = document.createElement('img')
+          imgQuestion.src = 'static/images/user.png'
+          imgQuestion.alt = ''
+          imgQuestion.style.maxWidth = '50px'
+          const pQuestion = document.createElement('p')
+          pQuestion.textContent = question
+          qnaDivQuestion.appendChild(imgQuestion)
+          qnaDivQuestion.appendChild(pQuestion)
+      
+          const qnaDivAnswer = document.createElement('div')
+          qnaDivAnswer.classList.add('qna')
+          const imgAnswer = document.createElement('img')
+          imgAnswer.src = 'static/images/ai_photo.png'
+          imgAnswer.alt = ''
+          imgQuestion.style.maxWidth = '50px'
+          const pAnswer = document.createElement('p')
+          pAnswer.textContent = event.data
+          qnaDivAnswer.appendChild(imgAnswer)
+          qnaDivAnswer.appendChild(pAnswer)
+      
+          questionDiv.appendChild(qnaDivQuestion)
+          questionDiv.appendChild(qnaDivAnswer)
+      
+          chatbox.appendChild(questionDiv)
+          document.querySelector('input[name="question"]').value = ''
+        }
+      }
+      
+      const input = document.getElementById('messageInput')
+      input.addEventListener('click', function (event) {
+        const pdfName = document.querySelector('.pdf-name').innerText
+        const question = document.querySelector('input[name="question"]').value
+        document.querySelector('.loader').style.display = 'block'
+        ws.send(pdfName + '||' + question)
+      })
+      
+      ws.onclose = (e) => {
+        if (e.code == 1008) {
+          const popup_container = (document.querySelector('.popup').style.display = 'block')
+          const popup = document.querySelector('.connection-closing-message')
+          popup.innerText = 'Rate Limit Exceeded. Please try again later.'
+        }
+        console.log('Disconnected from WebSocket server')
+      }
+    </script>
+  </body>
+</html>

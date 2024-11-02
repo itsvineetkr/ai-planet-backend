@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Planet</title>
+    <link rel="stylesheet" href="../static/css/homepage.css" />
+  </head>
+  <body>
+    <header>
+      <nav>
+        <img src="../static/images/logo.svg" alt="AI Planet" />
+        <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+          <input type="file" id="fileInput" name="pdf" accept="application/pdf" style="display: none;" onchange="uploadFile()" />
+          <button type="button" id="uploadButton" onclick="document.getElementById('fileInput').click()">Upload PDF</button>
+        </form>
+      </nav>
+    </header>
+    <main>
+      <h1>AI Planet</h1>
+      <h3>Upload your pdf and ask questions efforlessly. First two pdfs are on us!</h3>
+      <h3>Rate Limit: 2 PDFS per hour and 5 messages per PDF.</h3>
+      <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" id="fileInput" name="pdf" accept="application/pdf" style="display: none;" onchange="uploadFile()" />
+        <button type="button" id="uploadButton" onclick="document.getElementById('fileInput').click()">Upload PDF!</button>
+      </form>
+      <div class="container-loader">
+        <div class="loader"></div>
+      </div>
+    </main>
+
+    <script>
+      function uploadFile() {
+        const fileInput = document.getElementById('fileInput')
+        const uploadForm = document.getElementById('uploadForm')
+      
+        if (fileInput.files.length > 0) {
+          document.querySelector('.loader').style.display = 'block'
+          document.getElementById('uploadButton').disabled = true
+          uploadForm.submit()
+        }
+      }
+    </script>
+  </body>
+</html>
