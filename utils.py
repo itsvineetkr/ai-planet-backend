@@ -38,6 +38,16 @@ llm = HuggingFaceEndpoint(endpoint_url=endpoint_url, temperature=0.2, max_tokens
 
 
 async def make_vec_db(pdf_path, pdf_name):
+    """
+    Create a vector database from a PDF file.
+
+    Args:
+        pdf_path (str): Path to the PDF file.
+        pdf_name (str): Name of the PDF file.
+
+    ReturnspdfMetadata:
+        vector database (FAISS)
+    """
     document = PyPDFLoader(pdf_path).load()
     splitter = RecursiveCharacterTextSplitter()
     documents = splitter.split_documents(document)
@@ -47,6 +57,13 @@ async def make_vec_db(pdf_path, pdf_name):
 
 
 def create_retriever(db):
+    """
+    Create a retrieval chain from a vector database.
+    Args:
+        db (FAISS): Vector database.
+    Returns:
+        retriever_chain
+    """
     retriever = db.as_retriever()
 
     document_chain = create_stuff_documents_chain(llm, prompt)
@@ -56,13 +73,23 @@ def create_retriever(db):
 
 
 async def generate_response(pdf_name, question):
-    db_path = UPLOADS_DIR / "vec_dbs" / pdf_name
-    db = FAISS.load_local(
-        db_path,
+    """
+    It takes pdf name and the question as argument and then loads the vector database of that pdf and generates response to that question.
+
+    Args:
+        pdf_name (str): The name of the PDF file to use for generating the response.
+        question (str): The question to ask based on the PDF content.
+
+    Returns:
+        str: The generated response to the question.
+    """
+    vector_db_path = UPLOADS_DIR / "vec_dbs" / pdf_name
+    vector_db = FAISS.load_local(
+        vector_db_path,
         embeddings=HuggingFaceEmbeddings(),
         allow_dangerous_deserialization=True,
     )
 
-    retriever = create_retriever(db)
+    retriever = create_retriever(vector_db)
     response = retriever.invoke({"input": question})
     return response["answer"]
